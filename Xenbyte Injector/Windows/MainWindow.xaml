@@ -1,0 +1,165 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Xenbyte_Injector" x:Name="mainWindow"
+    x:Class="Xenbyte_Injector.Windows.MainWindow"
+        mc:Ignorable="d"
+        Title="Xenbyte Injector" Height="700" Width="1200" Background="#FF1C1E26" FontSize="11" Closing="mainWindow_Closing">
+    <Grid>
+        <Menu Margin="0,0,0,0" Height="20" VerticalAlignment="Top" Background="#FF1C1E26" Foreground="#FFE1E1E1">
+            <MenuItem Header="File">
+                <MenuItem x:Name="addToLibraryListMenuItem" Header="Add to Library List..." Template="{DynamicResource FinalSubMenuItemTemplate}" Click="addToLibraryListMenuItem_Click"/>
+                <MenuItem x:Name="refreshProcessListMenuItem" Header="Refresh Process List" Template="{DynamicResource FinalSubMenuItemTemplate}" Click="refreshProcessListMenuItem_Click"/>
+                <Separator/>
+                <MenuItem x:Name="exitMenuItem" Header="Exit" Template="{DynamicResource FinalSubMenuItemTemplate}" Click="exitMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="Tools">
+                <MenuItem x:Name="taskManagerMenuItem" Header="Task Manager" Template="{DynamicResource FinalSubMenuItemTemplate}" Click="taskManagerMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem x:Name="aboutXenbyteInjectorMenuItem" Header="About Xenbyte Injector" Template="{DynamicResource FinalSubMenuItemTemplate}" Click="aboutXenbyteInjectorMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+        <GroupBox Header="Process List" Margin="5,25,0,200" Width="250" Background="#FF1C1E26" Foreground="#FFE95378" VerticalAlignment="Top" HorizontalAlignment="Left" BorderThickness="0.1,0.1,0.1,0.1">
+            <ListView x:Name="processListView" Margin="3,3,3,3" ItemsSource="{Binding}" Background="#FF1C1E26" Foreground="#FFE95378" SelectionMode="Single" SelectionChanged="processListView_SelectionChanged">
+                <ListView.View>
+                    <GridView>
+                        <GridView.ColumnHeaderContainerStyle>
+                            <Style TargetType="{x:Type GridViewColumnHeader}">
+                                <Setter Property="Background" Value="#FF1C1E26"></Setter>
+                                <Setter Property="Foreground" Value="#FFE95378"></Setter>
+                                <Setter Property="BorderBrush" Value="{x:Null}"></Setter>
+                                <Setter Property="BorderThickness" Value="0"></Setter>
+                                <Setter Property="Margin" Value="0"></Setter>
+                                <Setter Property="Padding" Value="0"></Setter>
+                            </Style>
+                        </GridView.ColumnHeaderContainerStyle>
+                        <GridViewColumn Header="Process Name" Width="Auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="{Binding Icon}"/>
+                                        <TextBlock Text=" "/>
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Id" Width="Auto" DisplayMemberBinding="{Binding Id}"/>
+                    </GridView>
+                </ListView.View>
+                <ListView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Refresh" Click="refreshProcessListMenuItem_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="suspendProcessMenuItem" Header="Suspend" Click="suspendProcessMenuItem_Click"/>
+                        <MenuItem x:Name="resumeProcessMenuItem" Header="Resume" Click="resumeProcessMenuItem_Click"/>
+                        <MenuItem x:Name="terminateProcessMenuItem" Header="Terminate" Click="terminateProcessMenuItem_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="injectDllMenuItem" Header="Inject Dll..." Click="injectDllMenuItem_Click"/>
+                    </ContextMenu>
+                </ListView.ContextMenu>
+                <ListView.Resources>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="ToolTip">
+                            <Setter.Value>
+                                <ToolTip Background="#FF1C1E26" Foreground="#FFE1E1E1">
+                                    <TextBlock Text="{Binding Tag}"/>
+                                </ToolTip>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.Resources>
+            </ListView>
+        </GroupBox>
+
+        <GroupBox Header="Dll List" Margin="5,0,0,5" Height="190" Width="250" Background="#FF1C1E26" Foreground="#FFE95378" VerticalAlignment="Bottom" HorizontalAlignment="Left" BorderThickness="0.1,0.1,0.1,0.1">
+            <ListBox x:Name="dllListBox" Margin="3,3,3,3" ItemsSource="{Binding}" Background="#FF1C1E26" Foreground="#FFE95378">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"  Foreground="#FFE95378">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="{Binding Icon}"/>
+                                <TextBlock Text=" "/>
+                                <TextBlock Text="{Binding Name}"/>
+                            </StackPanel>
+                        </CheckBox>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Add New Library" Click="addToLibraryListMenuItem_Click"/>
+                        <MenuItem x:Name="removeSelectedLibraryMenuItem" Header="Remove Selected Library" Click="removeSelectedLibraryMenuItem_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="openContainingFolderMenuItem" Header="Open Containing Folder" Click="openContainingFolderMenuItem_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="clearLibrariesMenuItem" Header="Clear Libraries" Click="clearLibrariesMenuItem_Click"/>
+                    </ContextMenu>
+                </ListBox.ContextMenu>
+                <ListBox.Resources>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="ToolTip">
+                            <Setter.Value>
+                                <ToolTip Background="#FF1C1E26" Foreground="#FFE1E1E1">
+                                    <TextBlock Text="{Binding Tag}"/>
+                                </ToolTip>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.Resources>
+            </ListBox>
+        </GroupBox>
+
+        <Button x:Name="injectButton" Content="Inject" Margin="0,0,5,5" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="20" Width="120" Background="#FF1C1E26" Foreground="#FFE95378" Click="injectButton_Click"/>
+        <TabControl Margin="265,25,5,30" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#FF1C1E26" Foreground="#FFE95378">
+            <TabControl.ItemContainerStyle>
+                <Style TargetType="TabItem">
+                    <Setter Property="Background" Value="#FF1C1E26"/>
+                    <Setter Property="Foreground" Value="#FFE95378"/>
+                </Style>
+            </TabControl.ItemContainerStyle>
+
+            <TabItem Header="Injector">
+                <Grid Background="#FF1C1E26">
+                    <GroupBox Header="Automatic Injection" Margin="3,3,3,3" Height="70" VerticalAlignment="Top" BorderThickness="0.1,0.1,0.1,0.1">
+                        <Grid>
+                            <ComboBox x:Name="autoInjectionComboBox" Margin="3,3,3,3" Height="20" Width="110" VerticalAlignment="Top" HorizontalAlignment="Left" SelectedIndex="0">
+                                <ComboBoxItem Content="Process Name: "/>
+                                <ComboBoxItem Content="Window Name: "/>
+                                <ComboBoxItem Content="Class Name: "/>
+                            </ComboBox>
+                            <TextBox x:Name="autoInjectionTextBox" Margin="120,3,3,0" Height="20" Background="#FF1C1E26" Foreground="#FFE95378" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
+                            <CheckBox x:Name="autoInjectionCheckBox" Margin="0,0,3,3"  Content="Enable Auto Injection" HorizontalAlignment="Right" Foreground="#FFE95378" VerticalAlignment="Bottom" Checked="autoInjectionCheckBox_Checked" Unchecked="autoInjectionCheckBox_Unchecked" />
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Suspender">
+                <Grid Background="#FF1C1E26">
+                    <TabControl x:Name="suspenderTabControl" Margin="3" Background="#FF1C1E26" Foreground="#FFE95378" SelectionChanged="suspenderTabControl_SelectionChanged">
+                        <TabControl.ItemContainerStyle>
+                            <Style TargetType="TabItem">
+                                <Setter Property="Background" Value="#FF1C1E26"/>
+                                <Setter Property="Foreground" Value="#FFE95378"/>
+                            </Style>
+                        </TabControl.ItemContainerStyle>
+                        <TabItem Header="1">
+                            <Frame Source="/Xenbyte Injector;component/Pages/AutomaticSuspenderPage.xaml"/>
+                        </TabItem>
+                        <TabItem Header="">
+                            <Frame Source="/Xenbyte Injector;component/Pages/AutomaticSuspenderPage.xaml"/>
+                        </TabItem>
+                    </TabControl>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Settings">
+                <Grid Background="#FF1C1E26">
+                    <CheckBox x:Name="autoRefreshCheckBox" Margin="10,10,0,0" Content="Automatically Refresh Processes" Foreground="#FFE95378" Checked="autoRefreshCheckBox_Checked" Unchecked="autoRefreshCheckBox_Unchecked"/>
+                    <CheckBox x:Name="freezeProcessCheckBox" Margin="10,35,0,0" Content="Freeze Process When Injecting" Foreground="#FFE95378"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
