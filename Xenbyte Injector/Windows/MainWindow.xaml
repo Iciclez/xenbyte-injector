@@ -40,7 +40,7 @@
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="{Binding Icon}"/>
+                                        <Image Source="{Binding Icon}" Height="15" Width="15"/>
                                         <TextBlock Text=" "/>
                                         <TextBlock Text="{Binding Name}"/>
                                     </StackPanel>
@@ -81,7 +81,7 @@
                     <DataTemplate>
                         <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"  Foreground="#FFE95378">
                             <StackPanel Orientation="Horizontal">
-                                <Image Source="{Binding Icon}"/>
+                                <Image Source="{Binding Icon}" Height="15" Width="15"/>
                                 <TextBlock Text=" "/>
                                 <TextBlock Text="{Binding Name}"/>
                             </StackPanel>

@@ -20,7 +20,6 @@ namespace Xenbyte_Injector.Windows
     public partial class MainWindow : Window
     {
         private string config = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Xenbyte Injector", "config.json");
-
         private ObservableCollection<DllObjectViewModel> dllObjectCollection = new ObservableCollection<DllObjectViewModel>();
         private Timer autoRefreshTimer = new Timer();
         public bool AutoInjectionIsRunning { get; set; }
@@ -177,6 +176,7 @@ namespace Xenbyte_Injector.Windows
                         Id = process.Id
                     });
                 }
+                catch (Exception) { }
 
                 if (selectedId == process.Id)
                 {
