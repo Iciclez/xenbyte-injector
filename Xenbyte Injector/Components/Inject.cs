@@ -15,6 +15,10 @@ namespace Xenbyte_Injector.Components
 
     public class Inject
     {
+        protected uint MEM_RESERVE = 0x00002000;
+        protected uint MEM_COMMIT = 0x00001000;
+        protected uint PAGE_EXECUTE_READWRITE = 0x40;
+        protected uint MEM_RELEASE = 0x00008000;
 
         [DllImport("ntdll.dll")]
         protected static extern uint NtSuspendProcess(IntPtr handle);
@@ -55,7 +59,7 @@ namespace Xenbyte_Injector.Components
         {
             Processes = processes;
             Routine = routine;
-            Freeze = freeze; 
+            Freeze = freeze;
 
             GenericInjection = procedure =>
             {
@@ -82,11 +86,6 @@ namespace Xenbyte_Injector.Components
 
             bool result = GenericInjection(process =>
             {
-                uint MEM_RESERVE = 0x00002000;
-                uint MEM_COMMIT = 0x00001000;
-                uint PAGE_EXECUTE_READWRITE = 0x40;
-                uint MEM_RELEASE = 0x00008000;
-
                 foreach (var dll in dllList)
                 {
                     if (!File.Exists(dll))
@@ -98,70 +97,27 @@ namespace Xenbyte_Injector.Components
                     {
                         uint dllSize = (uint)dll.Length + 1;
 
-                        IntPtr allocatedMemory = VirtualAllocEx(process.Handle, IntPtr.Zero, dllSize, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-
-                        if (allocatedMemory == IntPtr.Zero)
+                        withRemoteVirtualMemory(process.Handle, dllSize, remoteAddress =>
                         {
-                            continue;
-                        }
-
-                        do
-                        {
-                            if (WriteProcessMemory(process.Handle, allocatedMemory, Encoding.ASCII.GetBytes(dll), dllSize, 0) == 0)
+                            IntPtr thread = CreateRemoteThread(process.Handle, IntPtr.Zero, 0, GetProcAddress(GetModuleHandle("kernelbase.dll"), "LoadLibraryA"), remoteAddress, 0, IntPtr.Zero);
+                            if (thread != IntPtr.Zero)
                             {
-                                break;
+                                WaitForSingleObject(thread, 4000);
                             }
-
-                            var thread = CreateRemoteThread(process.Handle, IntPtr.Zero, 0, GetProcAddress(GetModuleHandle("kernelbase.dll"), "LoadLibraryA"), allocatedMemory, 0, IntPtr.Zero);
-
-                            if (thread == IntPtr.Zero)
-                            {
-                                break;
-                            }
-
-                            WaitForSingleObject(thread, 4000);
-
-                        } while (false);
-
-                        if (allocatedMemory != IntPtr.Zero)
-                        {
-                            VirtualFreeEx(process.Handle, allocatedMemory, 0, MEM_RELEASE);
-                        }
+                        }, Encoding.ASCII.GetBytes(dll));
                     }
                     else if (Routine == InjectionRoutine.LoadLibraryW)
                     {
                         uint dllSize = (uint)dll.Length * 2 + 1;
 
-                        IntPtr allocatedMemory = VirtualAllocEx(process.Handle, IntPtr.Zero, dllSize, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-
-                        if (allocatedMemory == IntPtr.Zero)
+                        withRemoteVirtualMemory(process.Handle, dllSize, remoteAddress =>
                         {
-                            continue;
-                        }
-
-                        do
-                        {
-                            // UTF-16 = Unicode
-                            if (WriteProcessMemory(process.Handle, allocatedMemory, Encoding.Unicode.GetBytes(dll), dllSize, 0) == 0)
+                            IntPtr thread = CreateRemoteThread(process.Handle, IntPtr.Zero, 0, GetProcAddress(GetModuleHandle("kernelbase.dll"), "LoadLibraryW"), remoteAddress, 0, IntPtr.Zero);
+                            if (thread != IntPtr.Zero)
                             {
-                                break;
+                                WaitForSingleObject(thread, 4000);
                             }
-
-                            var thread = CreateRemoteThread(process.Handle, IntPtr.Zero, 0, GetProcAddress(GetModuleHandle("kernelbase.dll"), "LoadLibraryW"), allocatedMemory, 0, IntPtr.Zero);
-
-                            if (thread == IntPtr.Zero)
-                            {
-                                break;
-                            }
-
-                            WaitForSingleObject(thread, 4000);
-
-                        } while (false);
-
-                        if (allocatedMemory != IntPtr.Zero)
-                        {
-                            VirtualFreeEx(process.Handle, allocatedMemory, 0, MEM_RELEASE);
-                        }
+                        }, Encoding.Unicode.GetBytes(dll)); // UTF-16 = Unicode
                     }
                 }
             });
@@ -201,6 +157,20 @@ namespace Xenbyte_Injector.Components
             }
 
             return result;
+        }
+
+        private void withRemoteVirtualMemory(IntPtr handle, uint size, Action<IntPtr> function, byte[] valueAtRemoteMemory)
+        {
+            IntPtr remoteAddress = VirtualAllocEx(handle, IntPtr.Zero, size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+            if (remoteAddress != IntPtr.Zero)
+            {
+                if (valueAtRemoteMemory.Length != 0)
+                {
+                    WriteProcessMemory(handle, remoteAddress, valueAtRemoteMemory, size, 0);
+                }
+                function(remoteAddress);
+                VirtualFreeEx(handle, remoteAddress, 0, MEM_RELEASE);
+            }
         }
     }
 }
